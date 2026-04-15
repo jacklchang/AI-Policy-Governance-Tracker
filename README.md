@@ -2,7 +2,7 @@
 
 A static research dashboard tracking AI legislation, regulation, and governance across the EU, US, UK, and China.
 
-**Live site:** `https://jacklchang.github.io/ai-policy-tracker/`
+**Live site:** `[https://jacklchang.github.io/ai-policy-tracker/](https://jacklchang.github.io/AI-Policy-Governance-Tracker/)`
 
 ## Features
 
@@ -32,11 +32,6 @@ Push to `main` — GitHub Actions builds and deploys automatically.
 2. Under "Build and deployment", set Source to **GitHub Actions**
 3. Push to `main` — the workflow handles the rest
 
-If your repo is not named `ai-policy-tracker`, update the `base` field in `vite.config.js`:
-
-```js
-base: "/your-repo-name/",
-```
 
 ## Keeping it up to date
 
