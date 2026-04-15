@@ -1,0 +1,124 @@
+.legend {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.legendLabel { color: var(--text-3); }
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legendSwatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  border: 0.5px solid;
+}
+
+.legendText { color: var(--text-2); }
+
+.tableWrap { overflow-x: auto; }
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  min-width: 480px;
+}
+
+.th {
+  text-align: left;
+  padding: 0 0 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-bottom: 0.5px solid var(--border-mid);
+}
+
+.thCenter { text-align: center; font-size: 12px; color: var(--text); letter-spacing: 0; }
+
+.sectionLabel {
+  padding: 14px 0 5px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  border-bottom: 0.5px solid var(--border);
+}
+
+.rowHovered { background: var(--surface-2); }
+
+.rowLabel {
+  padding: 9px 8px 9px 0;
+  border-bottom: 0.5px solid var(--border);
+  vertical-align: top;
+}
+
+.rowName {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.rowDesc {
+  font-size: 12px;
+  color: var(--text-2);
+  line-height: 1.5;
+  margin-top: 2px;
+  padding-right: 8px;
+}
+
+.scoreGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  margin-top: 1.75rem;
+}
+
+.scoreCard {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem 1rem;
+}
+
+.scoreJur {
+  color: var(--text-3);
+  margin-bottom: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.scoreNum {
+  font-size: 22px;
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.scoreBarBg {
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+}
+
+.scoreBarFill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s;
+}
+
+.footnote {
+  color: var(--text-3);
+  margin-top: 0.75rem;
+}

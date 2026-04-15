@@ -1,0 +1,54 @@
+.td {
+  padding: 6px 4px;
+  text-align: center;
+  position: relative;
+}
+
+.square {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  margin: 0 auto;
+  cursor: default;
+  transition: transform 0.12s;
+}
+
+.tooltip {
+  position: absolute;
+  z-index: 50;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 270px;
+  background: #fff;
+  border: 0.5px solid var(--border-mid);
+  border-radius: var(--radius-lg);
+  padding: 10px 13px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.09);
+  pointer-events: none;
+  text-align: left;
+}
+
+.tooltipHeader {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 7px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.statusBadge {
+  font-size: 11px;
+}
+
+.tooltipText {
+  font-size: 12px;
+  color: var(--text-2);
+  line-height: 1.55;
+}

@@ -1,0 +1,78 @@
+/* ── Design tokens ──────────────────────────────────────────────────── */
+:root {
+  --bg:           #FAFAF8;
+  --surface:      #FFFFFF;
+  --surface-2:    #F4F3F0;
+  --border:       #E2E0DA;
+  --border-mid:   #C8C6BF;
+  --text:         #1A1A18;
+  --text-2:       #5A5A55;
+  --text-3:       #9A9A94;
+
+  --mono: "SFMono-Regular", "Consolas", "Liberation Mono", monospace;
+  --sans: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+/* ── Reset ──────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: #1a5fa8; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── Layout ─────────────────────────────────────────────────────────── */
+.page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+/* ── Mono label ─────────────────────────────────────────────────────── */
+.mono {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+/* ── Badges ─────────────────────────────────────────────────────────── */
+.badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 2px 9px;
+  border-radius: 20px;
+  border: 0.5px solid;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────── */
+button {
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 6px 16px;
+  background: transparent;
+  color: var(--text-2);
+  border: 0.5px solid var(--border-mid);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+button:hover { background: var(--surface-2); }
+button.active {
+  background: var(--text);
+  color: var(--surface);
+  border-color: var(--text);
+}
+
+/* ── Divider ─────────────────────────────────────────────────────────── */
+.divider { border: none; border-top: 1.5px solid var(--border-mid); margin: 1.5rem 0; }
