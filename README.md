@@ -2,7 +2,7 @@
 
 A static research dashboard tracking AI legislation, regulation, and governance across the EU, US, UK, and China.
 
-**Live site:** `[https://jacklchang.github.io/ai-policy-tracker/](https://jacklchang.github.io/AI-Policy-Governance-Tracker/)`
+**Live site:** `https://jacklchang.github.io/AI-Policy-Governance-Tracker/`
 
 ## Features
 
