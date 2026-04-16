@@ -1,13 +1,416 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Policy & Governance Tracker</title>
-    <meta name="description" content="Tracking AI legislation, regulation, and governance across the EU, US, UK, and China." />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Policy & Governance Tracker</title>
+<meta name="description" content="Tracking AI legislation and governance across the EU, US, UK, and China." />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+:root {
+  --bg:#FAFAF8;--surface:#FFFFFF;--surface-2:#F4F3F0;
+  --border:#E2E0DA;--border-mid:#C8C6BF;
+  --text:#1A1A18;--text-2:#5A5A55;--text-3:#9A9A94;
+  --mono:"SFMono-Regular","Consolas",monospace;
+  --sans:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:#1a5fa8;text-decoration:none}
+a:hover{text-decoration:underline}
+.page{max-width:960px;margin:0 auto;padding:2.5rem 1.5rem 4rem}
+.mono{font-family:var(--mono);font-size:11px;letter-spacing:.04em}
+.badge{font-family:var(--mono);font-size:11px;padding:2px 9px;border-radius:20px;border:.5px solid;white-space:nowrap;display:inline-block}
+button{font-family:var(--mono);font-size:12px;padding:6px 16px;background:transparent;color:var(--text-2);border:.5px solid var(--border-mid);border-radius:20px;cursor:pointer;transition:background .12s,color .12s}
+button:hover{background:var(--surface-2)}
+button.active{background:var(--text);color:var(--surface);border-color:var(--text)}
+hr{border:none;border-top:1.5px solid var(--border-mid);margin:1.5rem 0}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,Fragment} = React;
+
+const JURISDICTIONS=[
+  {id:"eu",name:"EU",full:"European Union"},
+  {id:"us",name:"US",full:"United States"},
+  {id:"uk",name:"UK",full:"United Kingdom"},
+  {id:"china",name:"China",full:"China"},
+];
+
+const STATUS={
+  3:{label:"Strong", bg:"#d4edda",text:"#155724",border:"#b5d9bf",dot:"#2d7a45"},
+  2:{label:"Partial",bg:"#fff3cd",text:"#7a5800",border:"#fde896",dot:"#b88a00"},
+  1:{label:"Weak",   bg:"#fde8d8",text:"#7c3310",border:"#f5c6a0",dot:"#c05010"},
+  0:{label:"None",   bg:"#f1f0ee",text:"#6c6c6c",border:"#ddd",   dot:"#aaa"},
+};
+
+const SCORECARD=[
+  {section:"Legislation & Regulation",rows:[
+    {id:"bl",name:"Binding AI legislation",description:"Has comprehensive, enacted AI legislation with legal force.",notes:{
+      eu:{s:3,note:"EU AI Act fully in force 2024–2026. World's first comprehensive AI law with risk tiers, prohibitions, and conformity assessments for high-risk systems."},
+      us:{s:1,note:"No federal AI legislation enacted. Executive orders rescinded in 2025. Numerous bills pending; states increasingly filling the gap."},
+      uk:{s:1,note:"Sector-based approach; no omnibus AI law. Pro-innovation stance relying on guidance from existing regulators (FCA, ICO, CMA)."},
+      china:{s:2,note:"Regulations for generative AI (2023), algorithmic recommendations (2022), and deep synthesis (2022). Sector-fragmented rather than comprehensive."},
+    }},
+    {id:"eb",name:"Enforcement body",description:"Dedicated regulator or clear enforcement authority for AI.",notes:{
+      eu:{s:3,note:"AI Office established within the European Commission (2024). Member state Market Surveillance Authorities handle national-level enforcement."},
+      us:{s:1,note:"No dedicated AI regulator. Patchwork of FTC, NIST, and sector agencies. US AISI established under NIST but advisory only."},
+      uk:{s:2,note:"AI Security Institute (DSIT) covers frontier models. Existing sectoral regulators retain oversight in their own domains."},
+      china:{s:2,note:"CAC enforces generative AI rules. MIIT oversees industrial AI. Overlapping jurisdictions across ministries."},
+    }},
+    {id:"fm",name:"Frontier model rules",description:"Specific obligations targeting the most powerful AI systems.",notes:{
+      eu:{s:3,note:"EU AI Act GPAI rules require transparency, copyright compliance, and systemic risk assessments for models above 10²⁵ FLOPs training compute."},
+      us:{s:1,note:"EO 14110 required safety reports for dual-use frontier models but was rescinded January 2025. No legislative replacement enacted."},
+      uk:{s:2,note:"Voluntary frontier safety commitments from labs; AISI conducts pre-deployment evaluations. No mandatory reporting framework yet."},
+      china:{s:2,note:"Security assessments required before deploying public generative AI services. Providers must register with the CAC."},
+    }},
+  ]},
+  {section:"Accountability & Transparency",rows:[
+    {id:"td",name:"Transparency & disclosure",description:"Mandatory disclosure of AI use, capabilities, or training data.",notes:{
+      eu:{s:3,note:"AI Act requires GPAI model documentation, training data summaries, and labeling of AI-generated content. Banned opaque emotion recognition in workplaces."},
+      us:{s:1,note:"Some state laws (CA, CO, TX) require AI disclosure in hiring/HR. No federal disclosure mandate. FTC guidance only."},
+      uk:{s:1,note:"ICO guidance on AI transparency under UK GDPR. No AI-specific disclosure mandate beyond existing data protection law."},
+      china:{s:2,note:"Generative AI Measures require clear labeling of AI-generated content and disclosure of the AI service nature to users."},
+    }},
+    {id:"lf",name:"AI liability framework",description:"Clear legal liability rules for AI-caused harm.",notes:{
+      eu:{s:2,note:"EU AI Liability Directive proposed to ease burden of proof for victims. Original draft withdrawn Feb 2025 amid industry pushback; revised approach under consultation."},
+      us:{s:1,note:"Existing tort law applies. No AI-specific liability statute. Courts still establishing standards case by case."},
+      uk:{s:1,note:"Existing negligence and product liability law. Law Commission reviewing autonomous systems. No AI liability bill enacted."},
+      china:{s:2,note:"Providers liable for AI-generated content violating laws. Personal Information Protection Law applies. Civil liability rules still developing."},
+    }},
+  ]},
+  {section:"International Coordination",rows:[
+    {id:"mc",name:"Multilateral commitments",description:"Participation in international AI governance frameworks and treaties.",notes:{
+      eu:{s:3,note:"Council of Europe AI Treaty signatory (2024). Bletchley Declaration. G7 Hiroshima Process. Active in OECD AI Policy Observatory."},
+      us:{s:2,note:"Signed Bletchley Declaration. Co-founded AI Safety Institutes network. Some multilateral disengagement under 2025 administration."},
+      uk:{s:3,note:"Hosted Bletchley AI Safety Summit (2023), Seoul and Paris Summits. Founded AISI. Council of Europe treaty signatory."},
+      china:{s:1,note:"Signed Bletchley Declaration but limited engagement with Western-led frameworks. Promotes own AI standards via ITU and SCO."},
+    }},
+    {id:"ai",name:"AI Safety Institute",description:"Government body evaluating frontier AI risks and capabilities.",notes:{
+      eu:{s:2,note:"AI Office within the Commission evaluates GPAI models. Shares safety functions with national bodies. No standalone AISI."},
+      us:{s:2,note:"US AISI established under NIST (2023). Conducts pre-deployment evaluations. Funding and authority uncertain under current administration."},
+      uk:{s:3,note:"AISI founded November 2023, first dedicated government frontier AI safety institute globally. Renamed AI Security Institute 2024."},
+      china:{s:1,note:"No equivalent independent institute. State-affiliated bodies (e.g. CAICT) do safety work but lack independence."},
+    }},
+  ]},
+];
+
+const BILL_STATUS={
+  inforce:  {label:"In force",       bg:"#d4edda",text:"#155724",border:"#b5d9bf"},
+  signed:   {label:"Signed into law",bg:"#d4edda",text:"#155724",border:"#b5d9bf"},
+  passed:   {label:"Passed chamber", bg:"#E6F1FB",text:"#0C447C",border:"#B5D4F4"},
+  committee:{label:"In committee",   bg:"#fff3cd",text:"#7a5800",border:"#fde896"},
+  pending:  {label:"Pending",        bg:"#EEEDFE",text:"#3C3489",border:"#CECBF6"},
+  stalled:  {label:"Stalled",        bg:"#fde8d8",text:"#7c3310",border:"#f5c6a0"},
+};
+
+const BILLS=[
+  {id:"eua",name:"EU AI Act",jurisdiction:"EU",status:"inforce",introduced:"Apr 2021",lastAction:"Feb 2025 — prohibitions on unacceptable-risk AI fully applied",highlight:true,link:"https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689",
+   summary:"World's first comprehensive AI law. Classifies AI by risk tier; bans social scoring and real-time biometric surveillance in public spaces; requires conformity assessments for high-risk systems; imposes GPAI model transparency and safety obligations for models above 10²⁵ FLOPs."},
+  {id:"tid",name:"TAKE IT DOWN Act",jurisdiction:"US",status:"signed",introduced:"Jan 2025",lastAction:"Apr 2025 — signed by President Trump",highlight:false,link:"",
+   summary:"Criminalizes non-consensual publication of intimate images, including AI-generated deepfakes. Requires platforms to remove flagged content within 48 hours. Passed Senate 94–0."},
+  {id:"nof",name:"NO FAKES Act",jurisdiction:"US",status:"committee",introduced:"Sep 2023",lastAction:"Mar 2025 — revised draft reintroduced in Senate Judiciary Committee",highlight:true,link:"",
+   summary:"Creates a federal right to control digital replicas of one's voice and likeness. Would prohibit AI-generated deepfakes of individuals without consent, with carve-outs for news and satire."},
+  {id:"aaia",name:"American AI Act (draft)",jurisdiction:"US",status:"pending",introduced:"Feb 2025",lastAction:"Mar 2025 — circulating in Senate Commerce Committee",highlight:true,link:"",
+   summary:"Proposed federal framework establishing AI risk tiers, transparency requirements, and an AI Safety Board. Would preempt conflicting state laws. Lacks bipartisan consensus needed to advance."},
+  {id:"crai",name:"CREATE AI Act",jurisdiction:"US",status:"signed",introduced:"Jun 2023",lastAction:"Jan 2025 — signed into law",highlight:false,link:"",
+   summary:"Establishes the National AI Research Resource (NAIRR), a shared national infrastructure giving researchers access to compute, data, and tools. Aimed at broadening AI research beyond large technology companies."},
+  {id:"sb47",name:"SB 1047 (California)",jurisdiction:"US",status:"stalled",introduced:"Feb 2024",lastAction:"Sep 2024 — vetoed by Governor Newsom",highlight:false,link:"",
+   summary:"Would have required safety testing and a kill-switch for AI models trained above compute thresholds. Vetoed after significant industry lobbying, but reshaped the national debate on frontier model governance."},
+  {id:"ukp",name:"AI Opportunities Action Plan",jurisdiction:"UK",status:"pending",introduced:"Jan 2025",lastAction:"Apr 2025 — implementation ongoing; no binding legislation introduced",highlight:false,link:"https://www.gov.uk/government/publications/ai-opportunities-action-plan",
+   summary:"Government plan to position the UK as an AI superpower. Proposes AI Growth Zones, compute investment, and public sector AI adoption targets. Sector-based regulation continues; no omnibus AI bill introduced."},
+  {id:"cng",name:"Generative AI Measures",jurisdiction:"China",status:"inforce",introduced:"Apr 2023",lastAction:"Aug 2023 — entered into force",highlight:false,link:"",
+   summary:"Requires providers of public generative AI services to register with the CAC, label AI-generated content, and ensure outputs do not violate core socialist values or national security. The first major national rules specifically targeting generative AI globally."},
+  {id:"eul",name:"EU AI Liability Directive",jurisdiction:"EU",status:"stalled",introduced:"Sep 2022",lastAction:"Feb 2025 — Commission withdrew original proposal; revised approach under consultation",highlight:true,link:"",
+   summary:"Aimed to ease burden of proof for victims of AI-caused harm via disclosure obligations and a rebuttable presumption of causality. Original draft withdrawn amid industry pushback; narrower replacement being developed."},
+];
+
+const TYPE_COLORS={
+  "Legislation":  {bg:"#E6F1FB",text:"#0C447C",border:"#B5D4F4"},
+  "Regulation":   {bg:"#EEEDFE",text:"#3C3489",border:"#CECBF6"},
+  "International":{bg:"#E1F5EE",text:"#085041",border:"#9FE1CB"},
+  "Courts":       {bg:"#FAECE7",text:"#712B13",border:"#F5C4B3"},
+  "Safety":       {bg:"#f1f0ee",text:"#444",   border:"#ddd"},
+};
+
+const UPDATES=[
+  {headline:"EU AI Act prohibited practices take effect",type:"Legislation",jurisdiction:"EU",date:"Feb 2025",source:"European Commission",significance:"High",link:"",
+   summary:"The EU AI Act's bans on unacceptable-risk AI — including real-time biometric surveillance in public spaces and social scoring — became enforceable in February 2025, with the AI Office issuing first compliance guidance."},
+  {headline:"Trump rescinds Biden-era AI Executive Order",type:"Regulation",jurisdiction:"US",date:"Jan 2025",source:"White House",significance:"High",link:"",
+   summary:"Executive Order 14110, which required safety testing reports for dual-use foundation models and established AISI, was rescinded on day one of the Trump administration. NIST's AI Safety Institute lost its mandate."},
+  {headline:"TAKE IT DOWN Act signed into law",type:"Legislation",jurisdiction:"US",date:"Apr 2025",source:"U.S. Congress",significance:"High",link:"",
+   summary:"The bipartisan TAKE IT DOWN Act was signed by President Trump, becoming the first federal law to criminalize non-consensual AI-generated intimate imagery and imposing a 48-hour takedown obligation on platforms."},
+  {headline:"Council of Europe AI Treaty opens for signature",type:"International",jurisdiction:"Global",date:"Sep 2024",source:"Council of Europe",significance:"High",link:"https://www.coe.int/en/web/artificial-intelligence/the-framework-convention-on-artificial-intelligence",
+   summary:"The Framework Convention on Artificial Intelligence — the first binding international AI treaty — opened for signature. The EU, UK, and US signed; China did not participate."},
+  {headline:"UK rebrands AISI as AI Security Institute",type:"Regulation",jurisdiction:"UK",date:"Jan 2024",source:"DSIT",significance:"Medium",link:"",
+   summary:"The UK's AI Safety Institute was renamed the AI Security Institute, signalling a shift toward national security applications of frontier AI risk evaluation. International partnerships with US and Japanese institutes continued."},
+  {headline:"EU Commission withdraws AI Liability Directive",type:"Legislation",jurisdiction:"EU",date:"Feb 2025",source:"European Commission",significance:"Medium",link:"",
+   summary:"Facing industry opposition, the Commission withdrew its 2022 AI Liability Directive and announced a narrower replacement under consultation. Critics warned this leaves AI harm victims without a clear legal path."},
+  {headline:"China releases draft AI safety governance framework",type:"Regulation",jurisdiction:"China",date:"Mar 2025",source:"TC260 / MIIT",significance:"Medium",link:"",
+   summary:"China's National TC260 standards body released a draft AI Safety Governance Framework covering risk classification, incident reporting, and red-lining for high-stakes domains. Open for public comment through mid-2025."},
+  {headline:"Paris AI Action Summit issues joint declaration",type:"International",jurisdiction:"Global",date:"Feb 2025",source:"Paris Summit",significance:"Medium",link:"",
+   summary:"The Paris AI Summit produced a joint declaration on governance, safety institutes collaboration, and inclusive AI development. The US declined to co-sign several provisions related to international oversight."},
+];
+
+// ─── Cell ────────────────────────────────────────────────────────────────────
+function Cell({note}){
+  const [h,setH]=useState(false);
+  const s=STATUS[note?.s??0];
+  return(
+    <td style={{padding:"6px 4px",textAlign:"center",position:"relative"}}
+      onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}>
+      <div style={{width:32,height:32,borderRadius:6,margin:"0 auto",cursor:"default",
+        background:s.bg,border:`0.5px solid ${s.border}`,
+        transition:"transform .12s",transform:h?"scale(1.18)":"scale(1)"}}/>
+      {h&&note&&(
+        <div style={{position:"absolute",zIndex:50,bottom:"calc(100% + 8px)",left:"50%",
+          transform:"translateX(-50%)",width:270,background:"#fff",
+          border:"0.5px solid var(--border-mid)",borderRadius:12,
+          padding:"10px 13px",boxShadow:"0 4px 18px rgba(0,0,0,.09)",
+          pointerEvents:"none",textAlign:"left"}}>
+          <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:7}}>
+            <div style={{width:8,height:8,borderRadius:"50%",background:s.dot,flexShrink:0}}/>
+            <span className="badge" style={{background:s.bg,color:s.text,borderColor:s.border}}>{s.label}</span>
+          </div>
+          <p style={{fontSize:12,color:"var(--text-2)",lineHeight:1.55,margin:0}}>{note.note}</p>
+        </div>
+      )}
+    </td>
+  );
+}
+
+// ─── Scorecard ───────────────────────────────────────────────────────────────
+function Scorecard(){
+  const [hr,setHr]=useState(null);
+  const allRows=SCORECARD.flatMap(s=>s.rows);
+  return(
+    <div>
+      <div style={{display:"flex",gap:14,flexWrap:"wrap",alignItems:"center",marginBottom:"1.25rem"}}>
+        <span className="mono" style={{color:"var(--text-3)"}}>Hover any cell for details →</span>
+        {[3,2,1,0].map(k=>{
+          const s=STATUS[k];
+          return(
+            <div key={k} style={{display:"flex",alignItems:"center",gap:5}}>
+              <div style={{width:11,height:11,borderRadius:3,background:s.bg,border:`0.5px solid ${s.border}`}}/>
+              <span className="mono" style={{color:"var(--text-2)"}}>{s.label}</span>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{overflowX:"auto"}}>
+        <table style={{width:"100%",borderCollapse:"collapse",tableLayout:"fixed",minWidth:480}}>
+          <colgroup>
+            <col style={{width:"36%"}}/>
+            {JURISDICTIONS.map(j=><col key={j.id} style={{width:"16%"}}/>)}
+          </colgroup>
+          <thead>
+            <tr>
+              <th style={{textAlign:"left",padding:"0 0 12px",fontFamily:"var(--mono)",fontSize:11,
+                fontWeight:400,color:"var(--text-3)",letterSpacing:".08em",textTransform:"uppercase",
+                borderBottom:"0.5px solid var(--border-mid)"}}>Dimension</th>
+              {JURISDICTIONS.map(j=>(
+                <th key={j.id} style={{textAlign:"center",padding:"0 4px 12px",fontFamily:"var(--mono)",
+                  fontSize:12,fontWeight:400,color:"var(--text)",borderBottom:"0.5px solid var(--border-mid)"}}>
+                  {j.name}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {SCORECARD.map((sec,si)=>(
+              <Fragment key={si}>
+                <tr>
+                  <td colSpan={5} style={{padding:"14px 0 5px",fontFamily:"var(--mono)",fontSize:11,
+                    letterSpacing:".1em",textTransform:"uppercase",color:"var(--text-3)",
+                    borderBottom:"0.5px solid var(--border)"}}>
+                    {sec.section}
+                  </td>
+                </tr>
+                {sec.rows.map(row=>(
+                  <tr key={row.id}
+                    style={{background:hr===row.id?"var(--surface-2)":"transparent"}}
+                    onMouseEnter={()=>setHr(row.id)} onMouseLeave={()=>setHr(null)}>
+                    <td style={{padding:"9px 8px 9px 0",borderBottom:"0.5px solid var(--border)",verticalAlign:"top"}}>
+                      <div style={{fontSize:13,fontWeight:500,color:"var(--text)",marginBottom:2}}>{row.name}</div>
+                      {hr===row.id&&(
+                        <div style={{fontSize:12,color:"var(--text-2)",lineHeight:1.5,marginTop:2,paddingRight:8}}>
+                          {row.description}
+                        </div>
+                      )}
+                    </td>
+                    {JURISDICTIONS.map(j=><Cell key={j.id} note={row.notes[j.id]}/>)}
+                  </tr>
+                ))}
+              </Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:8,marginTop:"1.75rem"}}>
+        {JURISDICTIONS.map(j=>{
+          const scores=allRows.map(r=>r.notes[j.id]?.s??0);
+          const pct=Math.round((scores.reduce((a,b)=>a+b,0)/scores.length/3)*100);
+          const col=pct>=60?"#2d7a45":pct>=35?"#b88a00":"#c05010";
+          return(
+            <div key={j.id} style={{background:"var(--surface)",border:"0.5px solid var(--border)",borderRadius:12,padding:"0.75rem 1rem"}}>
+              <p className="mono" style={{color:"var(--text-3)",marginBottom:3,textTransform:"uppercase",letterSpacing:".06em"}}>{j.full}</p>
+              <p className="mono" style={{fontSize:22,fontWeight:500,marginBottom:5,color:col}}>{pct}%</p>
+              <div style={{height:3,background:"var(--border)",borderRadius:2}}>
+                <div style={{width:`${pct}%`,height:"100%",borderRadius:2,background:col}}/>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <p className="mono" style={{color:"var(--text-3)",marginTop:"0.75rem"}}>
+        Scores averaged across all 8 dimensions. Reflects published laws and commitments as of April 2026.
+      </p>
+    </div>
+  );
+}
+
+// ─── Bills ───────────────────────────────────────────────────────────────────
+function Bills(){
+  const [filter,setFilter]=useState("All");
+  const [expanded,setExpanded]=useState(null);
+  const visible=filter==="All"?BILLS:BILLS.filter(b=>b.jurisdiction===filter);
+  return(
+    <div>
+      <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center",marginBottom:"1.25rem"}}>
+        <span className="mono" style={{color:"var(--text-3)",marginRight:4}}>Filter:</span>
+        {["All","EU","US","UK","China"].map(f=>(
+          <button key={f} className={filter===f?"active":""} onClick={()=>setFilter(f)}>{f}</button>
+        ))}
+      </div>
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        {visible.map(bill=>{
+          const bs=BILL_STATUS[bill.status];
+          const open=expanded===bill.id;
+          return(
+            <div key={bill.id}
+              onClick={()=>setExpanded(open?null:bill.id)}
+              style={{background:"var(--surface)",
+                border:bill.highlight?"0.5px solid var(--border-mid)":"0.5px solid var(--border)",
+                borderLeft:bill.highlight?"3px solid #1a5fa8":undefined,
+                borderRadius:12,padding:"0.875rem 1.1rem",cursor:"pointer"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:12}}>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:6}}>
+                    <span className="badge" style={{background:bs.bg,color:bs.text,borderColor:bs.border}}>{bs.label}</span>
+                    <span className="badge" style={{background:"var(--surface-2)",color:"var(--text-3)",borderColor:"var(--border)"}}>{bill.jurisdiction}</span>
+                    {bill.highlight&&<span className="badge" style={{background:"#E6F1FB",color:"#0C447C",borderColor:"#B5D4F4"}}>Key bill</span>}
+                  </div>
+                  <p style={{fontSize:15,fontWeight:500,color:"var(--text)",lineHeight:1.3}}>{bill.name}</p>
+                  {open&&(
+                    <div style={{marginTop:10,paddingTop:10,borderTop:"0.5px solid var(--border)"}}>
+                      <p style={{fontSize:13,color:"var(--text-2)",lineHeight:1.65,marginBottom:10}}>{bill.summary}</p>
+                      <div style={{display:"flex",gap:28,flexWrap:"wrap",marginBottom:8}}>
+                        <div>
+                          <span className="mono" style={{color:"var(--text-3)",display:"block",marginBottom:2}}>Introduced</span>
+                          <span className="mono" style={{fontSize:12,color:"var(--text-2)"}}>{bill.introduced}</span>
+                        </div>
+                        <div>
+                          <span className="mono" style={{color:"var(--text-3)",display:"block",marginBottom:2}}>Latest action</span>
+                          <span className="mono" style={{fontSize:12,color:"var(--text-2)"}}>{bill.lastAction}</span>
+                        </div>
+                      </div>
+                      {bill.link&&<a href={bill.link} target="_blank" rel="noopener noreferrer"
+                        className="mono" style={{fontSize:11,color:"#1a5fa8"}}
+                        onClick={e=>e.stopPropagation()}>Official text ↗</a>}
+                    </div>
+                  )}
+                </div>
+                <span className="mono" style={{color:"var(--text-3)",flexShrink:0,marginTop:2}}>{open?"▲":"▼"}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <p className="mono" style={{color:"var(--text-3)",marginTop:"1.25rem"}}>
+        {visible.length} bills shown · Click any bill to expand · Key bills marked in blue
+      </p>
+    </div>
+  );
+}
+
+// ─── Updates ─────────────────────────────────────────────────────────────────
+function Updates(){
+  return(
+    <div>
+      <p className="mono" style={{color:"var(--text-3)",marginBottom:"1.1rem"}}>
+        {UPDATES.length} developments · Curated as of April 2026
+      </p>
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        {UPDATES.map((item,i)=>{
+          const tc=TYPE_COLORS[item.type]||TYPE_COLORS["Safety"];
+          return(
+            <div key={i} style={{background:"var(--surface)",
+              border:item.significance==="High"?"0.5px solid #f5c6a0":"0.5px solid var(--border)",
+              borderLeft:item.significance==="High"?"3px solid #c05010":undefined,
+              borderRadius:12,padding:"0.875rem 1.1rem"}}>
+              <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:7}}>
+                <span className="badge" style={{background:tc.bg,color:tc.text,borderColor:tc.border}}>{item.type}</span>
+                <span className="badge" style={{background:"var(--surface-2)",color:"var(--text-3)",borderColor:"var(--border)"}}>{item.jurisdiction}</span>
+                {item.significance==="High"&&<span className="badge" style={{background:"#fde8d8",color:"#7c3310",borderColor:"#f5c6a0"}}>High significance</span>}
+              </div>
+              <p style={{fontSize:14,fontWeight:500,color:"var(--text)",lineHeight:1.4,marginBottom:5}}>{item.headline}</p>
+              <p style={{fontSize:13,color:"var(--text-2)",lineHeight:1.65,marginBottom:8}}>{item.summary}</p>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:6}}>
+                <span className="mono" style={{color:"var(--text-3)"}}>{item.source} · {item.date}</span>
+                {item.link&&<a href={item.link} target="_blank" rel="noopener noreferrer"
+                  className="mono" style={{fontSize:11,color:"#1a5fa8"}}>Read ↗</a>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── App ─────────────────────────────────────────────────────────────────────
+function App(){
+  const [tab,setTab]=useState("scorecard");
+  const tabs=[
+    {id:"scorecard",label:"Governance Scorecard"},
+    {id:"bills",label:"Major Bills"},
+    {id:"updates",label:"Latest Updates"},
+  ];
+  return(
+    <div className="page">
+      <header style={{marginBottom:"1.5rem"}}>
+        <p className="mono" style={{fontSize:11,letterSpacing:".14em",textTransform:"uppercase",color:"var(--text-3)",marginBottom:6}}>Research Dashboard</p>
+        <h1 style={{fontSize:28,fontWeight:600,letterSpacing:"-.02em",color:"var(--text)",marginBottom:10}}>AI Policy & Governance Tracker</h1>
+        <p style={{fontSize:14,color:"var(--text-2)",lineHeight:1.65,maxWidth:620,marginBottom:"1.25rem"}}>
+          How are major jurisdictions governing AI? This tracker scores the EU, US, UK, and China across eight governance dimensions and follows the key legislation shaping the global AI policy landscape.
+        </p>
+        <nav style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+          {tabs.map(t=>(
+            <button key={t.id} className={tab===t.id?"active":""} onClick={()=>setTab(t.id)}>{t.label}</button>
+          ))}
+        </nav>
+      </header>
+      <hr/>
+      <main>
+        {tab==="scorecard"&&<Scorecard/>}
+        {tab==="bills"&&<Bills/>}
+        {tab==="updates"&&<Updates/>}
+      </main>
+      <footer style={{marginTop:"3rem",paddingTop:"1.25rem",borderTop:"0.5px solid var(--border)"}}>
+        <p className="mono" style={{color:"var(--text-3)"}}>
+          AI Policy & Governance Tracker · Data current as of April 2026 ·{" "}
+          <a href="https://ailabwatch.org" target="_blank" rel="noopener noreferrer">Inspired by AI Lab Watch</a>
+        </p>
+      </footer>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
 </html>
